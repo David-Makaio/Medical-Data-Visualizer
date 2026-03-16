@@ -13,7 +13,6 @@ df['gluc'] = (df['gluc'] > 1).astype(int)
 
 
 def draw_cat_plot():
-    
     df_cat = pd.melt(df, id_vars='cardio', value_vars=['cholesterol', 'gluc', 'smoke', 'alco', 'active', 'overweight'])
 
     fig = sns.catplot(
@@ -31,20 +30,25 @@ def draw_cat_plot():
 
 
 def draw_heat_map():
-
-    df_heat = df[df['ap_lo'] <= df['ap_hi']]
-    df_heat = df_heat[df_heat['height'] >= df_heat['height'].quantile(0.025)]
-    df_heat = df_heat[df_heat['height'] <= df_heat['height'].quantile(0.975)]
-    df_heat = df_heat[df_heat['weight'] >= df_heat['weight'].quantile(0.025)]
-    df_heat = df_heat[df_heat['weight'] <= df_heat['weight'].quantile(0.975)]
+    df_heat = df[
+        (df['ap_lo'] <= df['ap_hi']) &
+        (df['height'] >= df['height'].quantile(0.025)) &
+        (df['height'] <= df['height'].quantile(0.975)) &
+        (df['weight'] >= df['weight'].quantile(0.025)) &
+        (df['weight'] <= df['weight'].quantile(0.975))
+    ]
 
     corr = df_heat.corr()
 
-    mask = np.triu(np.ones_like(corr, dtype=bool))
+    mask = np.triu(corr)
 
-    fig, ax = plt.subplots(figsize=(12, 10)) 
+    fig, ax = plt.subplots(figsize=(12, 12))
 
-    sns.heatmap(corr, mask=mask, annot=True, fmt='.1f', cmap='coolwarm', vmin=-0.08, vmax=0.24, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .5}, ax=ax)
+    sns.heatmap(
+        corr, mask=mask, annot=True, fmt='.1f', 
+        center=0, square=True, linewidths=.5, 
+        cbar_kws={'shrink': .5}
+    )
 
     fig.savefig('heatmap.png')
     return fig
